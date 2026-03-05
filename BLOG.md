@@ -42,4 +42,9 @@ test functionality that will eventually be used to add smoke to the simulation. 
 
 <img width="524" height="559" alt="image" src="https://github.com/user-attachments/assets/9fb7234a-64b4-4f8d-8906-9ef48f435140" />
 
+We also made sure to have a fixed timestep for the simulation. How it works is that we accumulate the time between each iteration of the main loop and increment
+a counter. After it is at least as large as our chosen timestep (a sixtieth a second), we update the simulation. Rendering is therefore performed as fast as
+possimpible, but the simulation can use a fixed timestep. This avoids any nasty numerical issues when the delta time becomes very large or very small.
+
 The next step is to begin with the actual physics.
+
