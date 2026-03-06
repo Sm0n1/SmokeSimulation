@@ -1,9 +1,9 @@
 #include <SDL3/SDL.h>
 #include <stdio.h>
+#include "simulation.h"
 
-#define N 512
+#define N 128
 #define SIZE ((N + 2) * (N + 2))
-#define IX(i, j) ((i) + (j) * (N + 2))
 #define DT (1.0 / 60.0)
 
 static float u[SIZE];
@@ -136,7 +136,11 @@ int main(int argc, char *argv[])
         {
             update_state();
             time_accumulator -= SDL_NS_PER_SECOND / 60;
+            // vel_step(N, u, v, u_prev, v_prev, 0.0001f, DT);
+            // dens_step(N, density, density_prev, u, v, 0.0001f, DT);
         }
+        vel_step(N, u, v, u_prev, v_prev, 0.0001f, DT);
+        dens_step(N, density, density_prev, u, v, 0.0001f, DT);
         
         render_state(renderer, texture);
 
