@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "simulation.h"
 
-#define N 128
+#define N 256
 #define SIZE ((N + 2) * (N + 2))
 #define DT (1.0 / 60.0)
 
@@ -31,6 +31,8 @@ void update_state()
             for (int j = j_lower_bound; j < j_upper_bound; j += 1)
             {
                 density[IX(i, j)] = 255;
+                u[IX(i, j)] = 10000;
+                v[IX(i, j)] = -10000;
             }
         }
     }

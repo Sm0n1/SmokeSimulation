@@ -137,7 +137,7 @@ void project(int N, float *u, float *v, float *p, float *div) {
  */
 void dens_step(int N, float *x, float *x0, float *u, float *v, float diff, float dt) {
     SWAP(x0, x);
-    diffuse(N, 0, x0, x, diff, dt);
+    diffuse(N, 0, x, x0, diff, dt);
     SWAP(x0, x);
     advect(N, 0, x, x0, u, v, dt);
 }
@@ -155,9 +155,9 @@ void dens_step(int N, float *x, float *x0, float *u, float *v, float diff, float
  */
 void vel_step(int N, float *u, float *v, float *u0, float *v0, float visc, float dt) {
     SWAP(u0, u);
-    diffuse(N, 1, u0, u, visc, dt);
+    diffuse(N, 1, u, u0, visc, dt);
     SWAP(v0, v);
-    diffuse(N, 2, v0, v, visc, dt);
+    diffuse(N, 2, v, v0, visc, dt);
 
     project(N, u0, v0, u, v);
 
