@@ -159,7 +159,7 @@ void vel_step(int N, float *u, float *v, float *u0, float *v0, float visc, float
     SWAP(v0, v);
     diffuse(N, 2, v, v0, visc, dt);
 
-    project(N, u0, v0, u, v);
+    project(N, u, v, u0, v0);
 
     SWAP(u0, u);
     SWAP(v0, v);
