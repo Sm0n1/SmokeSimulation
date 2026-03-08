@@ -19,6 +19,14 @@ int is_mouse_pressed = false;
 
 void update_state()
 {
+    int center = N / 2 + 1;
+    int half_width = 10;
+    for (int i = center - half_width; i <= center + half_width; i++)
+    {
+        v[IX(i, N)] = -1050.0f;
+        density[IX(i, N)] = 200.0f;
+    }
+
     if (is_mouse_pressed)
     {
         int i_lower_bound = (mouse_x >= 17)     ? ((int)mouse_x - 16) : (1);
@@ -30,9 +38,7 @@ void update_state()
         {
             for (int j = j_lower_bound; j < j_upper_bound; j += 1)
             {
-                density[IX(i, j)] = 255;
-                u[IX(i, j)] = 10000;
-                v[IX(i, j)] = -10000;
+                density[IX(i, j)] = 100;
             }
         }
     }
