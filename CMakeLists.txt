@@ -10,7 +10,8 @@ add_executable(smoke_simulation)
 
 target_sources(smoke_simulation PRIVATE
     src/main.c
-  "src/simulation.c")
+    src/simulation.c
+)
 
 target_link_libraries(smoke_simulation PRIVATE
 	SDL3::SDL3
