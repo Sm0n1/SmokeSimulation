@@ -65,8 +65,18 @@ After some debugging, we found that the bug was due to the old velocity values b
 
 <video src="./blog-assets/video22.mp4" controls autoplay loop></video>
 
+
+https://github.com/user-attachments/assets/9ab122c4-67b9-48f9-b280-ff642c00b8bb
+
+
 After some further tweaks such as changing the color scheme, making the velocity of the created smoke follow the direction of the cursor and some adjustments to the time stepping (especially when the window was moved) the following results were produced.
 
 <video src="./blog-assets/video23.mp4" controls autoplay loop></video>
+
+
+
+https://github.com/user-attachments/assets/bb90b319-29ca-4776-8825-a02786470bab
+
+
 
 Now it's really starting to look like a smoke simulation! The next step is to add boundry conditions and objects to the simulation.
