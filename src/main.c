@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "simulation.h"
 
-#define N 126
+#define N 128
 #define SIZE ((N + 2) * (N + 2))
 #define DT (1.0 / 60.0)
 
@@ -40,14 +40,19 @@ float tex_to_win(int c)
     return (float)(c * ((1.0 / (N + 2)) * WINDOW_SIZE));
 }
 
-// TODO: make ball
 void init_state()
 {
-    for (int i = (N / 2) - 16; i < (N / 2) + 16; i += 1)
+    for (int i = (N / 2) - (N / 8); i < (N / 2) + (N / 8); i += 1)
     {
-        for (int j = (N / 2) - 16; j < (N / 2) + 16; j += 1)
+        for (int j = (N / 2) - (N / 8); j < (N / 2) + (N / 8); j += 1)
         {
-            boundary[IX(i, j)] = true;
+            const int di = i - N / 2;
+            const int dj = j - N / 2;
+
+            if (di * di + dj * dj < N * N / 64)
+            {
+                boundary[IX(i, j)] = true;
+            }
         }
     }
 }
@@ -122,6 +127,9 @@ void update_state()
 
         should_state_reset = false;
     }
+
+    vel_step(N, u, v, u_prev, v_prev, 0.0001f, (float)DT, boundary);
+    dens_step(N, density, density_prev, u, v, 0.0001f, (float)DT, boundary);
 }
 
 void render_state(SDL_Renderer *renderer, SDL_Texture *texture)
@@ -141,7 +149,7 @@ void render_state(SDL_Renderer *renderer, SDL_Texture *texture)
             
             if (boundary[IX(i, j)])
             {
-                pixels[i + j * stride] = (SDL_Color){ .r = 255, .g = 0, .b = 0, .a = (Uint8)density[IX(i, j)] + 32 };
+                pixels[i + j * stride] = (SDL_Color){ .r = 200, .g = 255, .b = 155, .a = 255 };
             }
         }
     }
@@ -253,8 +261,6 @@ int main(int argc, char *argv[])
         {
             update_state();
             time_accumulator -= SDL_NS_PER_SECOND / 60;
-            vel_step(N, u, v, u_prev, v_prev, 0.0001f, (float)DT, boundary);
-            dens_step(N, density, density_prev, u, v, 0.0001f, (float)DT, boundary);
         }
         
         render_state(renderer, texture);

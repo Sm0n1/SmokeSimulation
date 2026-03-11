@@ -7,7 +7,7 @@
  * Diffusion.
  * 
  * @param N    Grid size.
- * @param b    idk
+ * @param b    Boundary type: 1 for horizontal velocity, 2 for vertical velocity, and 0 for other quantities
  * @param x    The field. The result is written to this array.
  * @param x0   The previous values of the field.
  * @param diff The diffusion rate.
@@ -17,16 +17,17 @@
 void diffuse(int N, int b, float *x, float *x0, float diff, float dt, bool *bnd)
 {
     float a = diff * N * N * dt;
-
+    
     for (int k = 0; k < 20; k += 1)
     {
         for (int i = 1; i <= N; i += 1)
         {
             for (int j = 1; j <= N; j += 1)
             {
-                x[IX(i, j)] = (x0[IX(i, j)] + a * (x[IX(i-1, j)] + x[IX(i+1, j)] + x[IX(i, j-1)] + x[IX(i, j+1)])) / (1 + 4 * a);
+                x[IX(i, j)] = (x0[IX(i, j)] + a * (x[IX(i - 1, j)] + x[IX(i + 1, j)] + x[IX(i, j - 1)] + x[IX(i, j + 1)])) / (1 + 4 * a);
             }
         }
+
         set_bnd(N, b, x, bnd);
     }
 }
@@ -35,7 +36,7 @@ void diffuse(int N, int b, float *x, float *x0, float diff, float dt, bool *bnd)
  * Advection.
  * 
  * @param N   Grid size.
- * @param b   idk
+ * @param b   Boundary type: 1 for horizontal velocity, 2 for vertical velocity, and 0 for other quantities
  * @param d   The field. The result is written to this array.
  * @param d0  The previous values of the field.
  * @param u   The horizontal velocity field.
@@ -109,8 +110,8 @@ void project(int N, float *u, float *v, float *p, float *div, bool *bnd)
             // which can be approximated using a finite difference as
             // ∇·u ≈ Δu/Δx + Δv/Δy
             // In this case Δx = Δy = ??? TODO
-            const float delta_u = u[IX(i+1, j)] - u[IX(i-1, j)];
-            const float delta_v = v[IX(i, j+1)] - v[IX(i, j-1)];
+            const float delta_u = u[IX(i + 1, j)] - u[IX(i - 1, j)];
+            const float delta_v = v[IX(i, j + 1)] - v[IX(i, j - 1)];
             div[IX(i, j)] = -0.5f * h * (delta_u + delta_v);
             p[IX(i, j)] = 0;
         }
@@ -120,13 +121,13 @@ void project(int N, float *u, float *v, float *p, float *div, bool *bnd)
     set_bnd(N, 0, div, bnd);
     set_bnd(N, 0, p, bnd);
 
-    for (int k = 0; k < 20; k += 1)
+    for (int k = 0; k < 20; k += 1) // controls the number of iterations of the solver
     {
         for (int i = 1; i <= N; i += 1)
         {
             for (int j = 1; j <= N; j += 1)
             {
-                p[IX(i, j)] = (div[IX(i, j)] + p[IX(i-1, j)] + p[IX(i+1, j)] + p[IX(i, j-1)] + p[IX(i, j+1)]) / 4;
+                p[IX(i, j)] = (div[IX(i, j)] + p[IX(i - 1, j)] + p[IX(i + 1, j)] + p[IX(i, j - 1)] + p[IX(i, j + 1)]) / 4;
             }
         }
 
@@ -137,8 +138,8 @@ void project(int N, float *u, float *v, float *p, float *div, bool *bnd)
     {
         for (int j = 1; j <= N; j += 1)
         {
-            u[IX(i, j)] -= 0.5f * (p[IX(i+1, j)] - p[IX(i-1, j)]) / h;
-            v[IX(i, j)] -= 0.5f * (p[IX(i, j+1)] - p[IX(i, j-1)]) / h;
+            u[IX(i, j)] -= 0.5f * (p[IX(i + 1, j)] - p[IX(i - 1, j)]) / h;
+            v[IX(i, j)] -= 0.5f * (p[IX(i, j + 1)] - p[IX(i, j - 1)]) / h;
         }
     }
 
@@ -199,7 +200,7 @@ void vel_step(int N, float *u, float *v, float *u0, float *v0, float visc, float
  * Fluid containment and interaction with objects 
  *
  * @param N    Grid size.
- * @param b    idk
+ * @param b    Boundary type: 1 for horizontal velocity, 2 for vertical velocity, and 0 for other quantities
  * @param x    The density field. The result is written to this array.
  * @param bnd  The internal boundary.
  */
@@ -207,16 +208,47 @@ void set_bnd(int N, int b, float *x, bool *bnd)
 {
     for (int i = 1; i <= N; i += 1)
     {
-        x[IX(0, i)] = b == 1 ? -x[IX(1, i)] : x[IX(1, i)];
-        x[IX(N+1, i)] = b == 1 ? -x[IX(N, i)] : x[IX(N, i)];
-        x[IX(i, 0)] = b == 2 ? -x[IX(i, 1)] : x[IX(i, 1)];
-        x[IX(i, N+1)] = b == 2 ? -x[IX(i, N)] : x[IX(i, N)];
+        x[IX(0, i)]     = b == 1 ? -x[IX(1, i)] : x[IX(1, i)];
+        x[IX(N + 1, i)] = b == 1 ? -x[IX(N, i)] : x[IX(N, i)];
+        x[IX(i, 0)]     = b == 2 ? -x[IX(i, 1)] : x[IX(i, 1)];
+        x[IX(i, N + 1)] = b == 2 ? -x[IX(i, N)] : x[IX(i, N)];
     }
 
-    x[IX(0, 0)] = 0.5f * (x[IX(1, 0)] + x[IX(0, 1)]);
-    x[IX(0, N+1)] = 0.5f * (x[IX(1, N+1)] + x[IX(0, N)]);
-    x[IX(N+1, 0)] = 0.5f * (x[IX(N, 0)] + x[IX(N+1, 1)]);
-    x[IX(N+1, N+1)] = 0.5f * (x[IX(N, N+1)] + x[IX(N+1, N)]);
+    x[IX(0, 0)]         = 0.5f * (x[IX(1, 0)]     + x[IX(0, 1)]);
+    x[IX(0, N + 1)]     = 0.5f * (x[IX(1, N + 1)] + x[IX(0, N)]);
+    x[IX(N + 1, 0)]     = 0.5f * (x[IX(N, 0)]     + x[IX(N + 1, 1)]);
+    x[IX(N + 1, N + 1)] = 0.5f * (x[IX(N, N + 1)] + x[IX(N + 1, N)]);
 
-    (void)bnd;
+    // Internal boundary (only works if internal boundary is not on edge)
+    for (int i = 1; i <= N * (N + 2) + N; i += 1)
+    {
+        // Only handle boundary cells
+        if (!bnd[i])
+        {
+            continue;
+        }
+
+        // True if non-boundary neighbour cell
+        bool n1 = !bnd[i - 1];
+        bool n2 = !bnd[i + 1];
+        bool n3 = !bnd[i - (N + 2)];
+        bool n4 = !bnd[i + (N + 2)];
+
+        // If there is at least one non-boundary cell (avoids division by zero) else set to zero
+        if (n1 + n2 + n3 + n4 > 0)
+        {
+            // Average of non-boundary neighbour cells
+            x[i] = (
+                //   negate if b == _
+                n1 * (1 - 2 * (b == 1)) * x[i - 1]       +
+                n2 * (1 - 2 * (b == 1)) * x[i + 1]       +
+                n3 * (1 - 2 * (b == 2)) * x[i - (N + 2)] +
+                n4 * (1 - 2 * (b == 2)) * x[i + (N + 2)]
+            ) / (n1 + n2 + n3 + n4);
+        }
+        else
+        {
+            x[i] = 0.0f;
+        }
+    }
 }
