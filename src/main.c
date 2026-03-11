@@ -75,7 +75,10 @@ void update_state()
         {
             for (int j = j_lower_bound; j < j_upper_bound; j += 1)
             {
-                density[IX(i, j)] = 200.0f;
+                if (!boundary[IX(i, j)])
+                {
+                    density[IX(i, j)] = 200.0f;
+                }
             }
         }
     }
@@ -93,13 +96,17 @@ void update_state()
         {
             for (int j = j_lower_bound; j < j_upper_bound; j += 1)
             {
-                u[IX(i, j)] += mouse_x_vel;
-                v[IX(i, j)] += mouse_y_vel;
-                mouse_x_vel *= 0.99f;
-                mouse_y_vel *= 0.99f;
+                if (!boundary[IX(i, j)])
+                {
+                    u[IX(i, j)] += mouse_x_vel;
+                    v[IX(i, j)] += mouse_y_vel;
+                }
             }
         }
     }
+
+    mouse_x_vel *= 0.9f;
+    mouse_y_vel *= 0.9f;
 
     if (should_state_reset)
     {
@@ -130,13 +137,11 @@ void render_state(SDL_Renderer *renderer, SDL_Texture *texture)
     {
         for (int j = 0; j < N + 2; j += 1)
         {
+            pixels[i + j * stride] = (SDL_Color){ .r = 255, .g = 255, .b = 255, .a = (Uint8)density[IX(i, j)] };
+            
             if (boundary[IX(i, j)])
             {
-                pixels[i + j * stride] = (SDL_Color){ .r = 255, .g = 0, .b = 0, .a = 255 };
-            }
-            else
-            {
-                pixels[i + j * stride] = (SDL_Color){ .r = 255, .g = 255, .b = 255, .a = (Uint8)density[IX(i, j)] };
+                pixels[i + j * stride] = (SDL_Color){ .r = 255, .g = 0, .b = 0, .a = (Uint8)density[IX(i, j)] + 32 };
             }
         }
     }
@@ -216,8 +221,8 @@ int main(int argc, char *argv[])
             case SDL_EVENT_MOUSE_MOTION:
                 mouse_x_pos = event.motion.x;
                 mouse_y_pos = event.motion.y;
-                mouse_x_vel = event.motion.xrel;
-                mouse_y_vel = event.motion.yrel;
+                mouse_x_vel = event.motion.xrel * 0.2f;
+                mouse_y_vel = event.motion.yrel * 0.2f;
                 break;
             case SDL_EVENT_MOUSE_BUTTON_DOWN:
                 is_mouse_pressed = true;

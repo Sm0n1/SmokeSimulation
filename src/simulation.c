@@ -6,12 +6,13 @@
 /**
  * Diffusion.
  * 
- * @param N Grid size.
- * @param b idk
- * @param x The field. The result is written to this array.
- * @param x0 The previous values of the field.
+ * @param N    Grid size.
+ * @param b    idk
+ * @param x    The field. The result is written to this array.
+ * @param x0   The previous values of the field.
  * @param diff The diffusion rate.
- * @param dt Delta time.
+ * @param dt   Delta time.
+ * @param bnd  The internal boundary.
  */
 void diffuse(int N, int b, float *x, float *x0, float diff, float dt, bool *bnd)
 {
@@ -33,13 +34,14 @@ void diffuse(int N, int b, float *x, float *x0, float diff, float dt, bool *bnd)
 /**
  * Advection.
  * 
- * @param N Grid size.
- * @param b idk
- * @param d The field. The result is written to this array.
- * @param d0 The previous values of the field.
- * @param u The horizontal velocity field.
- * @param v The vertical velocity field.
- * @param dt Delta time.
+ * @param N   Grid size.
+ * @param b   idk
+ * @param d   The field. The result is written to this array.
+ * @param d0  The previous values of the field.
+ * @param u   The horizontal velocity field.
+ * @param v   The vertical velocity field.
+ * @param dt  Delta time.
+ * @param bnd The internal boundary.
  */
 void advect(int N, int b, float *d, float *d0, float *u, float *v, float dt, bool *bnd)
 {
@@ -86,11 +88,12 @@ void advect(int N, int b, float *d, float *d0, float *u, float *v, float dt, boo
  * In other words, this function searches for a pressure field p that ensures the
  * velocity field is divergence free.
  * 
- * @param N Grid size.
- * @param u The horizontal velocity field. The result is written to this array.
- * @param v The vertical velocity field. The result is written to this array.
- * @param p A temporary array where the pressure is stored.
+ * @param N   Grid size.
+ * @param u   The horizontal velocity field. The result is written to this array.
+ * @param v   The vertical velocity field. The result is written to this array.
+ * @param p   A temporary array where the pressure is stored.
  * @param div A temporary array where the divergence is stored.
+ * @param bnd The internal boundary.
  */
 void project(int N, float *u, float *v, float *p, float *div, bool *bnd)
 {
@@ -146,13 +149,14 @@ void project(int N, float *u, float *v, float *p, float *div, bool *bnd)
 /**
  * Density step.
  * 
- * @param N Grid size.
- * @param x The density field. The result is written to this array.
- * @param x0 The previous values of the density field.
- * @param u The horizontal velocity field.
- * @param v The vertical velocity field.
+ * @param N    Grid size.
+ * @param x    The density field. The result is written to this array.
+ * @param x0   The previous values of the density field.
+ * @param u    The horizontal velocity field.
+ * @param v    The vertical velocity field.
  * @param diff The diffusion rate.
- * @param dt Delta time.
+ * @param dt   Delta time.
+ * @param bnd  The internal boundary.
  */
 void dens_step(int N, float *x, float *x0, float *u, float *v, float diff, float dt, bool *bnd)
 {
@@ -165,13 +169,14 @@ void dens_step(int N, float *x, float *x0, float *u, float *v, float diff, float
 /**
  * Velocity step.
  * 
- * @param N Grid size.
- * @param u The horizontal velocity field. The result is written to this array.
- * @param v The vertical velocity field. The result is written to this array.
- * @param u0 The previous values of the horizontal velocity field.
- * @param v0 The previous values of the vertical velocity field.
+ * @param N    Grid size.
+ * @param u    The horizontal velocity field. The result is written to this array.
+ * @param v    The vertical velocity field. The result is written to this array.
+ * @param u0   The previous values of the horizontal velocity field.
+ * @param v0   The previous values of the vertical velocity field.
  * @param visc The viscosity.
- * @param dt Delta time.
+ * @param dt   Delta time.
+ * @param bnd  The internal boundary.
  */
 void vel_step(int N, float *u, float *v, float *u0, float *v0, float visc, float dt, bool *bnd)
 {
@@ -190,6 +195,14 @@ void vel_step(int N, float *u, float *v, float *u0, float *v0, float visc, float
     project(N, u, v, u0, v0, bnd);
 }
 
+/**
+ * Fluid containment and interaction with objects 
+ *
+ * @param N    Grid size.
+ * @param b    idk
+ * @param x    The density field. The result is written to this array.
+ * @param bnd  The internal boundary.
+ */
 void set_bnd(int N, int b, float *x, bool *bnd)
 {
     for (int i = 1; i <= N; i += 1)
