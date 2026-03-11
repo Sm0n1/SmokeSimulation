@@ -13,7 +13,7 @@
  * @param diff The diffusion rate.
  * @param dt Delta time.
  */
-void diffuse(int N, int b, float *x, float *x0, float diff, float dt)
+void diffuse(int N, int b, float *x, float *x0, float diff, float dt, bool *bnd)
 {
     float a = diff * N * N * dt;
 
@@ -26,7 +26,7 @@ void diffuse(int N, int b, float *x, float *x0, float diff, float dt)
                 x[IX(i, j)] = (x0[IX(i, j)] + a * (x[IX(i-1, j)] + x[IX(i+1, j)] + x[IX(i, j-1)] + x[IX(i, j+1)])) / (1 + 4 * a);
             }
         }
-        set_bnd(N, b, x);
+        set_bnd(N, b, x, bnd);
     }
 }
 
@@ -41,7 +41,7 @@ void diffuse(int N, int b, float *x, float *x0, float diff, float dt)
  * @param v The vertical velocity field.
  * @param dt Delta time.
  */
-void advect(int N, int b, float *d, float *d0, float *u, float *v, float dt)
+void advect(int N, int b, float *d, float *d0, float *u, float *v, float dt, bool *bnd)
 {
     const float dt0 = dt * N;
 
@@ -73,7 +73,7 @@ void advect(int N, int b, float *d, float *d0, float *u, float *v, float dt)
         }
     }
 
-    set_bnd(N, b, d);
+    set_bnd(N, b, d, bnd);
 }
 
 /**
@@ -92,7 +92,7 @@ void advect(int N, int b, float *d, float *d0, float *u, float *v, float dt)
  * @param p A temporary array where the pressure is stored.
  * @param div A temporary array where the divergence is stored.
  */
-void project(int N, float *u, float *v, float *p, float *div)
+void project(int N, float *u, float *v, float *p, float *div, bool *bnd)
 {
     const float h = 1.0f / N;
 
@@ -114,8 +114,8 @@ void project(int N, float *u, float *v, float *p, float *div)
     }
 
     // Set boundary conditions for div and p. TODO what are they set to?
-    set_bnd(N, 0, div);
-    set_bnd(N, 0, p);
+    set_bnd(N, 0, div, bnd);
+    set_bnd(N, 0, p, bnd);
 
     for (int k = 0; k < 20; k += 1)
     {
@@ -127,7 +127,7 @@ void project(int N, float *u, float *v, float *p, float *div)
             }
         }
 
-        set_bnd(N, 0, p);
+        set_bnd(N, 0, p, bnd);
     }
 
     for (int i = 1; i <= N; i += 1)
@@ -139,8 +139,8 @@ void project(int N, float *u, float *v, float *p, float *div)
         }
     }
 
-    set_bnd(N, 1, u);
-    set_bnd(N, 2, v);
+    set_bnd(N, 1, u, bnd);
+    set_bnd(N, 2, v, bnd);
 }
 
 /**
@@ -154,12 +154,12 @@ void project(int N, float *u, float *v, float *p, float *div)
  * @param diff The diffusion rate.
  * @param dt Delta time.
  */
-void dens_step(int N, float *x, float *x0, float *u, float *v, float diff, float dt)
+void dens_step(int N, float *x, float *x0, float *u, float *v, float diff, float dt, bool *bnd)
 {
     SWAP(x0, x);
-    diffuse(N, 0, x, x0, diff, dt);
+    diffuse(N, 0, x, x0, diff, dt, bnd);
     SWAP(x0, x);
-    advect(N, 0, x, x0, u, v, dt);
+    advect(N, 0, x, x0, u, v, dt, bnd);
 }
 
 /**
@@ -173,24 +173,24 @@ void dens_step(int N, float *x, float *x0, float *u, float *v, float diff, float
  * @param visc The viscosity.
  * @param dt Delta time.
  */
-void vel_step(int N, float *u, float *v, float *u0, float *v0, float visc, float dt)
+void vel_step(int N, float *u, float *v, float *u0, float *v0, float visc, float dt, bool *bnd)
 {
     SWAP(u0, u);
-    diffuse(N, 1, u, u0, visc, dt);
+    diffuse(N, 1, u, u0, visc, dt, bnd);
     SWAP(v0, v);
-    diffuse(N, 2, v, v0, visc, dt);
+    diffuse(N, 2, v, v0, visc, dt, bnd);
 
-    project(N, u, v, u0, v0);
+    project(N, u, v, u0, v0, bnd);
 
     SWAP(u0, u);
     SWAP(v0, v);
-    advect(N, 1, u, u0, u0, v0, dt);
-    advect(N, 2, v, v0, u0, v0, dt);
+    advect(N, 1, u, u0, u0, v0, dt, bnd);
+    advect(N, 2, v, v0, u0, v0, dt, bnd);
 
-    project(N, u, v, u0, v0);
+    project(N, u, v, u0, v0, bnd);
 }
 
-void set_bnd(int N, int b, float *x)
+void set_bnd(int N, int b, float *x, bool *bnd)
 {
     for (int i = 1; i <= N; i += 1)
     {
@@ -204,4 +204,6 @@ void set_bnd(int N, int b, float *x)
     x[IX(0, N+1)] = 0.5f * (x[IX(1, N+1)] + x[IX(0, N)]);
     x[IX(N+1, 0)] = 0.5f * (x[IX(N, 0)] + x[IX(N+1, 1)]);
     x[IX(N+1, N+1)] = 0.5f * (x[IX(N, N+1)] + x[IX(N+1, N)]);
+
+    (void)bnd;
 }

@@ -15,6 +15,7 @@ static float u_prev[SIZE];
 static float v_prev[SIZE];
 static float density[SIZE];
 static float density_prev[SIZE];
+static bool boundary[SIZE];
 
 enum interaction_mode {
     DENSITY = 1 << 0,
@@ -37,6 +38,18 @@ int win_to_tex(float c)
 float tex_to_win(int c)
 {
     return (float)(c * ((1.0 / (N + 2)) * WINDOW_SIZE));
+}
+
+// TODO: make ball
+void init_state()
+{
+    for (int i = (N / 2) - 16; i < (N / 2) + 16; i += 1)
+    {
+        for (int j = (N / 2) - 16; j < (N / 2) + 16; j += 1)
+        {
+            boundary[IX(i, j)] = true;
+        }
+    }
 }
 
 void update_state()
@@ -117,16 +130,16 @@ void render_state(SDL_Renderer *renderer, SDL_Texture *texture)
     {
         for (int j = 0; j < N + 2; j += 1)
         {
-            pixels[i + j * stride] = (SDL_Color){ .r = 255, .g = 255, .b = 255, .a = (Uint8)density[IX(i, j)] };
+            if (boundary[IX(i, j)])
+            {
+                pixels[i + j * stride] = (SDL_Color){ .r = 255, .g = 0, .b = 0, .a = 255 };
+            }
+            else
+            {
+                pixels[i + j * stride] = (SDL_Color){ .r = 255, .g = 255, .b = 255, .a = (Uint8)density[IX(i, j)] };
+            }
         }
     }
-    /*for (int i = 0; i < N + 2; i += 1)
-    {
-        pixels[i] = (SDL_Color){ .r = 255, .g = 0, .b = 0, .a = 255 };
-        pixels[i + (N + 1) * stride] = (SDL_Color){ .r = 255, .g = 0, .b = 0, .a = 255 };
-        pixels[i * stride] = (SDL_Color){ .r = 255, .g = 0, .b = 0, .a = 255 };
-        pixels[N + 1 + i * stride] = (SDL_Color){ .r = 255, .g = 0, .b = 0, .a = 255 };
-    }*/
     SDL_UnlockTexture(texture);
     SDL_FRect srcrect = { .x = 0, .y = 0, .w = N + 2, .h = N + 2 };
     SDL_FRect dstrect = { .x = 0, .y = 0, .w = WINDOW_SIZE, .h = WINDOW_SIZE };
@@ -176,6 +189,8 @@ int main(int argc, char *argv[])
         SDL_Log("SDL create texture failed: %s", SDL_GetError());
         return 1;
     }
+
+    init_state();
 
     Uint64 time = SDL_GetTicksNS();
     Uint64 time_accumulator = 0;
@@ -233,8 +248,8 @@ int main(int argc, char *argv[])
         {
             update_state();
             time_accumulator -= SDL_NS_PER_SECOND / 60;
-            vel_step(N, u, v, u_prev, v_prev, 0.0001f, (float)DT);
-            dens_step(N, density, density_prev, u, v, 0.0001f, (float)DT);
+            vel_step(N, u, v, u_prev, v_prev, 0.0001f, (float)DT, boundary);
+            dens_step(N, density, density_prev, u, v, 0.0001f, (float)DT, boundary);
         }
         
         render_state(renderer, texture);
