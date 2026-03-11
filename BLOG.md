@@ -48,3 +48,35 @@ possimpible, but the simulation can use a fixed timestep. This avoids any nasty 
 
 The next step is to begin with the actual physics.
 
+# Initial Implementation of the Physics
+2026-03-08
+
+Now that rendering to the screen works, we can begin with the physics! We are following the article Real-Time Fluid Dynamics for Games by Joe Stam, which describes a method for solving the Navier-Stokes equations on a grid.
+
+Conveniently, the article implements the method in C and we are using C as well. While it would essentially be possible to copy paste the code, however this would not be very educational. Therefore, we implemented the method with the article as a reference, but without blindly copying code without understanding it. When implementing the various steps of the method from the article, we made sure to understand the underlying mathematics, physics and programming and add additional comments that explain what the code is doing and why. Furthermore, this helps us to be able to debug and modify the method as required to add boundry conditions, and in the future two-way interactions.
+
+As a broad overview, the method works by splittig the simulation into a density step and a velocity step. The density step updates the density field by diffusing (spreading out) and advecting (transporting) the density field. The velocity step updates the velocity field by diffusing, advecting and projecting the velocity field. Projecting is done to ensure that the velocity field is divergence-free to ensure fluids are incompressible.
+
+The initial implementation was partially successful as diffusion worked. However, there was a bug in the velocity step which prevented the fluid from being simulated properly. This made the simulation slowly fade away, but the fluid would not move much even when adding velocity every frame.
+
+<img src="./blog-assets/only-diffuse.png" alt="Only diffusion works" />
+
+After some debugging, we found that the bug was due to the old velocity values being used when the current ones should have been used. This was easily fixed by correctly swapping the old and current velocity fields. This produced the first working version of the simulation. There are however some artifacts in the simulation due to the velocity being set in a weird way.
+
+<video src="./blog-assets/video22.mp4" controls autoplay loop></video>
+
+
+https://github.com/user-attachments/assets/9ab122c4-67b9-48f9-b280-ff642c00b8bb
+
+
+After some further tweaks such as changing the color scheme, making the velocity of the created smoke follow the direction of the cursor and some adjustments to the time stepping (especially when the window was moved) the following results were produced.
+
+<video src="./blog-assets/video23.mp4" controls autoplay loop></video>
+
+
+
+https://github.com/user-attachments/assets/bb90b319-29ca-4776-8825-a02786470bab
+
+
+
+Now it's really starting to look like a smoke simulation! The next step is to add boundry conditions and objects to the simulation.

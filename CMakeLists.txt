@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
 
+if(APPLE AND CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
+    set(CMAKE_OSX_ARCHITECTURES "arm64" CACHE STRING "Build architectures" FORCE)
+endif()
+
 project(SmokeSimulation LANGUAGES C)
 
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE) # we want static linking for simplicity
