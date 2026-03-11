@@ -29,6 +29,7 @@ static float mouse_y_vel = 0.0f;
 static bool is_mouse_pressed = false;
 static enum interaction_mode mode = DENSITY | VELOCITY;
 static bool should_state_reset = false;
+static bool smoke_pillar = false;
 
 int win_to_tex(float c)
 {
@@ -59,12 +60,22 @@ void init_state()
 
 void update_state()
 {
-    const int center = N / 2 + 1;
-    const int half_width = 10;
-    for (int i = center - half_width; i <= center + half_width; i += 1)
+    if (smoke_pillar)
     {
-        //v[IX(i, N)] = -10.0f;
-        //density[IX(i, N)] = 200.0f;
+        const int center = N / 2 + 1;
+        const int half_width = 16;
+        for (int i = center - half_width; i <= center + half_width; i += 1)
+        {
+            density[IX(i, N)]     = 200.0f;
+            density[IX(i, N - 1)] = 200.0f;
+            density[IX(i, N - 2)] = 200.0f;
+            density[IX(i, N - 3)] = 200.0f;
+
+            for (int j = 1; j <= N + 1; j += 1)
+            {
+                v[IX(i, j)] = -0.5f;
+            }
+        }
     }
 
     if (is_mouse_pressed && (mode & DENSITY))
@@ -242,11 +253,7 @@ int main(int argc, char *argv[])
                 if (event.key.scancode == SDL_SCANCODE_D) mode ^= DENSITY;
                 if (event.key.scancode == SDL_SCANCODE_V) mode ^= VELOCITY;
                 if (event.key.scancode == SDL_SCANCODE_R) should_state_reset = true;
-
-                if      (mode & DENSITY && mode & VELOCITY) SDL_Log("Density and velocity enabled");
-                else if (mode & DENSITY)                    SDL_Log("Density enabled");
-                else if (mode & VELOCITY)                   SDL_Log("Velocity enabled");
-                else                                        SDL_Log("Interaction disabled");
+                if (event.key.scancode == SDL_SCANCODE_P) smoke_pillar ^= true;
 
                 break;
 

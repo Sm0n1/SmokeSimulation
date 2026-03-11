@@ -49,6 +49,7 @@ possimpible, but the simulation can use a fixed timestep. This avoids any nasty 
 The next step is to begin with the actual physics.
 
 # Initial Implementation of the Physics
+
 2026-03-08
 
 Now that rendering to the screen works, we can begin with the physics! We are following the article Real-Time Fluid Dynamics for Games by Joe Stam, which describes a method for solving the Navier-Stokes equations on a grid.
@@ -80,3 +81,17 @@ https://github.com/user-attachments/assets/bb90b319-29ca-4776-8825-a02786470bab
 
 
 Now it's really starting to look like a smoke simulation! The next step is to add boundry conditions and objects to the simulation.
+
+# Finalization and the Ball o' Smoke
+
+2026-03-10
+
+For the final touch, we implemented the internal boundaries. There wasn't much guidence from the Real-Time Fluid Dynamics for Games paper by Joe Stam.
+All he mentions is to use a boolean array representing the internal boundary and use the values of the neighbouring cells. However, we did have the boundary
+condition to contain the smoke. From that we were able to implement simple internal boundaries. The idea is to take the average of the four neighbouring cells.
+For densities and other scalars, there isn't anything more to do. For velocities, we must flip the sign depending on which side of the boundary the fluid is on.
+If the fluid is moving into the boundary from the side, then its horizontal component must flip in order for the velocity to become zero at boundary. Boundaries
+are essentially always at least two cells wide, and the smoke will always stop at the second cell, passing through the first.
+
+With internal boundaries implemented, we were finally able to add the ball by writing to the boundary array upon program initialization. The results are shown below.
+
