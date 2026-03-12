@@ -12,4 +12,3 @@
 - `D`: toggle density interaction mode (enabled by default)
 - `V`: toggle velocity interaction mode (enabled by default)
 - `P`: toggle smoke streeam (disabled by default)
-- 
