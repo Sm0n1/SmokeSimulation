@@ -52,9 +52,11 @@ void advect(int N, int b, float *d, float *d0, float *u, float *v, float dt, boo
     {
         for (int j = 1; j <= N; j += 1)
         {
+            // Follow the velocity backwards in time
             float x = i - dt0 * u[IX(i, j)];
             float y = j - dt0 * v[IX(i, j)];
 
+            // Clamp to grid boundaries
             if (x < 0.5) x = 0.5;
             if (x > N + 0.5f) x = N + 0.5f;
             const int i0 = (int)x;
@@ -65,11 +67,15 @@ void advect(int N, int b, float *d, float *d0, float *u, float *v, float dt, boo
             const int j0 = (int)y;
             const int j1 = j0 + 1;
 
+            // (i0, j0), (i0, j1), (i1, j0), and (i1, j1) are four the grid cells we landed in
+            // Calculate the "weight" of each cell based on how close it is to (x, y)
             const float s1 = x - i0;
             const float s0 = 1 - s1;
             const float t1 = y - j0;
             const float t0 = 1 - t1;
 
+            // Weighted average of the four cells we landed in. Basically linear
+            // intepolation in 2D.
             d[IX(i, j)] =
                 s0 * (t0 * d0[IX(i0, j0)] + t1 * d0[IX(i0, j1)]) +
                 s1 * (t0 * d0[IX(i1, j0)] + t1 * d0[IX(i1, j1)]);
@@ -98,6 +104,8 @@ void advect(int N, int b, float *d, float *d0, float *u, float *v, float dt, boo
  */
 void project(int N, float *u, float *v, float *p, float *div, bool *bnd)
 {
+    // Assume the total grid has side length 1.0
+    // h is the distance between adjacent grid cells
     const float h = 1.0f / N;
 
     // Calculate an approximation of the divergence of the velocity field using a
@@ -109,7 +117,8 @@ void project(int N, float *u, float *v, float *p, float *div, bool *bnd)
             // ∇·u = ∂u/∂x + ∂v/∂y
             // which can be approximated using a finite difference as
             // ∇·u ≈ Δu/Δx + Δv/Δy
-            // In this case Δx = Δy = ??? TODO
+            // In this case Δx = Δy = 2h, but the coordinate system is rescaled to simplify
+            // for the solver.
             const float delta_u = u[IX(i + 1, j)] - u[IX(i - 1, j)];
             const float delta_v = v[IX(i, j + 1)] - v[IX(i, j - 1)];
             div[IX(i, j)] = -0.5f * h * (delta_u + delta_v);
@@ -117,10 +126,12 @@ void project(int N, float *u, float *v, float *p, float *div, bool *bnd)
         }
     }
 
-    // Set boundary conditions for div and p. TODO what are they set to?
+    // Set boundary conditions for div and p. Sets the value at the boundary to the
+    // value at the nearest non-boundary cell.
     set_bnd(N, 0, div, bnd);
     set_bnd(N, 0, p, bnd);
 
+    // Solve the Poisson equation ∇²p = ∇·u using Gauss-Seidel relaxation
     for (int k = 0; k < 20; k += 1) // controls the number of iterations of the solver
     {
         for (int i = 1; i <= N; i += 1)
@@ -138,6 +149,10 @@ void project(int N, float *u, float *v, float *p, float *div, bool *bnd)
     {
         for (int j = 1; j <= N; j += 1)
         {
+            // Subtract pressure gradient -∇p.
+            // ∇p = (∂p/∂x, ∂p/∂y) can be approximated using a finite difference as
+            // ∇p ≈ (Δp/Δx, Δp/Δy)
+            // In this case Δx = Δy = 2h
             u[IX(i, j)] -= 0.5f * (p[IX(i + 1, j)] - p[IX(i - 1, j)]) / h;
             v[IX(i, j)] -= 0.5f * (p[IX(i, j + 1)] - p[IX(i, j - 1)]) / h;
         }
