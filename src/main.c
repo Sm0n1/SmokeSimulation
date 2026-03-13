@@ -43,14 +43,15 @@ float tex_to_win(int c)
 
 void init_state()
 {
-    for (int i = (N / 2) - (N / 8); i < (N / 2) + (N / 8); i += 1)
+    const int radius = 6;
+    for (int i = (N / 2) - radius; i < (N / 2) + radius; i += 1)
     {
-        for (int j = (N / 2) - (N / 8); j < (N / 2) + (N / 8); j += 1)
+        for (int j = (N / 2) - radius; j < (N / 2) + radius; j += 1)
         {
             const int di = i - N / 2;
             const int dj = j - N / 2;
 
-            if (di * di + dj * dj < N * N / 64)
+            if (di * di + dj * dj < radius * radius)
             {
                 boundary[IX(i, j)] = true;
             }
@@ -66,15 +67,14 @@ void update_state()
         const int half_width = 16;
         for (int i = center - half_width; i <= center + half_width; i += 1)
         {
-            density[IX(i, N)]     = 200.0f;
-            density[IX(i, N - 1)] = 200.0f;
-            density[IX(i, N - 2)] = 200.0f;
-            density[IX(i, N - 3)] = 200.0f;
-
-            for (int j = 1; j <= N + 1; j += 1)
-            {
-                v[IX(i, j)] = -0.5f;
-            }
+            density[IX(i, N)]     = 1.0f;
+            density[IX(i, N - 1)] = 1.0f;
+            density[IX(i, N - 2)] = 1.0f;
+            density[IX(i, N - 3)] = 1.0f;
+            v[IX(i, N)]     -= 1.0f;
+            v[IX(i, N - 1)] -= 1.0f;
+            v[IX(i, N - 2)] -= 1.0f;
+            v[IX(i, N - 3)] -= 1.0f;
         }
     }
 
@@ -93,7 +93,7 @@ void update_state()
             {
                 if (!boundary[IX(i, j)])
                 {
-                    density[IX(i, j)] = 200.0f;
+                    density[IX(i, j)] = 1.0f;
                 }
             }
         }
@@ -156,7 +156,7 @@ void render_state(SDL_Renderer *renderer, SDL_Texture *texture)
     {
         for (int j = 0; j < N + 2; j += 1)
         {
-            pixels[i + j * stride] = (SDL_Color){ .r = 255, .g = 255, .b = 255, .a = (Uint8)density[IX(i, j)] };
+            pixels[i + j * stride] = (SDL_Color){ .r = 255, .g = 255, .b = 255, .a = (Uint8)(density[IX(i, j)] * 254.0f) };
             
             if (boundary[IX(i, j)])
             {
@@ -206,6 +206,9 @@ int main(int argc, char *argv[])
         return 1;
     }
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+
+    const char* name = SDL_GetRendererName(renderer);
+    printf("Renderer backend: %s\n", name);
 
     SDL_Texture* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, N + 2, N + 2);
     if (texture == NULL)

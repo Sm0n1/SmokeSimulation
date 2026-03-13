@@ -94,4 +94,3 @@ If the fluid is moving into the boundary from the side, then its horizontal comp
 are essentially always at least two cells wide, and the smoke will always stop at the second cell, passing through the first.
 
 With internal boundaries implemented, we were finally able to add the ball by writing to the boundary array upon program initialization. The results are shown below.
-
