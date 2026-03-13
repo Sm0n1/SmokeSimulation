@@ -84,7 +84,7 @@ Now it's really starting to look like a smoke simulation! The next step is to ad
 
 # Finalization and the Ball o' Smoke
 
-2026-03-10
+2026-03-11
 
 For the final touch, we implemented the internal boundaries. There wasn't much guidence from the Real-Time Fluid Dynamics for Games paper by Joe Stam.
 All he mentions is to use a boolean array representing the internal boundary and use the values of the neighbouring cells. However, we did have the boundary
@@ -94,3 +94,7 @@ If the fluid is moving into the boundary from the side, then its horizontal comp
 are essentially always at least two cells wide, and the smoke will always stop at the second cell, passing through the first.
 
 With internal boundaries implemented, we were finally able to add the ball by writing to the boundary array upon program initialization. The results are shown below.
+
+https://github.com/user-attachments/assets/2777b945-72b6-43ca-90c3-e68c628d0fb3
+
+
